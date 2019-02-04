@@ -1,15 +1,17 @@
 #ifndef encoder_h
 #define encoder_h
 
+#include <Arduino.h>
 namespace encdr {
     
 const long 
-    DEBOUNCE_TIME = 50,
+    DEBOUNCE_ENC = 20,
+    DEBOUNCE_BTN = 80,
     LONG_PRESS = 500;
 
 class Encoder {
     public:
-        Encoder(int8_t encA, encB, btn);
+        Encoder(byte encA, byte encB, byte btn);
         
         // should be called to update encoder state 
         void tick();
@@ -42,7 +44,8 @@ class Encoder {
                         
         long btn_change_time, 
              btn_on_time,
-             last_tick;
+             last_tick,
+             enc_change_time;
         
         int8_t edir;        
 };

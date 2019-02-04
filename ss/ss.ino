@@ -1,6 +1,9 @@
 #include <TFT.h>  // Arduino LCD library
 #include <SPI.h>
 
+#include "encoder.h"
+
+
 const uint8_t 
     PBTN = 2, 
     PENCA = 3, 
@@ -11,13 +14,14 @@ const uint8_t
 
 int value = -1;
 int incr  = 1;
-
+char encdrPrintout[5];
 
 // create an instance of the library
 TFT TFTscreen = TFT(PCS, PDC, PRST);
-char encdrPrintout[5];
+encdr::Encoder enc(PENCA, PENCB, PBTN);
 
 void setNewValue(int new_val) {
+    
     if (new_val == value)
         return;
         
@@ -30,8 +34,10 @@ void setNewValue(int new_val) {
     TFTscreen.text(encdrPrintout, 0, 20);
     Serial.println(value);
 }
+//---------------------------------------------------------------------
 
 void setup() {
+
     TFTscreen.begin();
     TFTscreen.setRotation(1);
     // clear the screen with a black background
@@ -46,73 +52,42 @@ void setup() {
     // ste the font size very large for the loop
     TFTscreen.setTextSize(4);
 
-
-
     Serial.begin(9600);
     setNewValue(0);
 }
+//---------------------------------------------------------------------
 
 void loop() {
 
+    enc.tick();
 
-    if (btn_on_time > 0 && millis() - btn_on_time > LONG_PRESS) {
-        btn_on_time = -1;
+    if ( enc.get_lbtn_pressed() > 0 ) {
         incr = 1;
         setNewValue(0);
     }
 
-    if (btn_pos != new_btn && millis() - btn_change_time > DEBOUNCE_TIME) {
-        btn_pos = new_btn;
-        if (btn_pos == 0)
-            switch (incr) {
-                case 1:
-                    incr = 5;
-                    break;
-                case 5:
-                    incr = 10;
-                    break;
-                case 10:
-                    incr = 1;
-                    break;
-            }
-        btn_on_time = btn_pos == 0 ? millis() : -1;
+    if ( enc.get_btn_pressed() > 0 ) {
+        switch (incr) {
+            case 1:
+                incr = 5;
+                break;
+            case 5:
+                incr = 10;
+                break;
+            case 10:
+                incr = 1;
+                break;
+        }
+    }
+
+    int new_val = value + incr * enc.get_value();
+    if (new_val > 999)
+        new_val = 999;
+    if (new_val < 0)
+        new_val = 0;
         
-        btn_change_time = millis();
-    }
-    
-    if ( new_epos != epos ) {
-        if (edir == -1) {
-            if (estate[0][0] == new_epos) {
-                edir = 0;
-                eval = 1;
-            }
-            else 
-                if (estate[1][0] == new_epos) {
-                    edir = 1;
-                    eval = 1;
-                }
-        }
-        else 
-            if (estate[edir][eval] == new_epos) 
-                eval++;
-            else {
-                eval = 0;
-                edir = -1;
-            }
+    setNewValue(new_val);
 
-        epos = new_epos;
-    }
-
-    if ( new_epos == 3 ) {
-        if ( eval == 4 ) {
-            int new_val = value + incr * (edir ? 1 : -1);
-            if (new_val > 999)
-                new_val = 999;
-            if (new_val < -999)
-                new_val = -999;
-            setNewValue(new_val);
-        }
-        eval = 0;
-        edir = -1;
-    }
 }
+//---------------------------------------------------------------------
+
