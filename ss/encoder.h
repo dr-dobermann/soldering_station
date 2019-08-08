@@ -1,10 +1,11 @@
-#ifndef encoder_h
-#define encoder_h
+#ifndef _ENCODER_H_
+#define _ENCODER_H_
 
 #include <Arduino.h>
 namespace encdr {
     
-const long 
+const long
+    MAX_CHECK_TIME = 20, 
     DEBOUNCE_ENC = 5;
 
     const int8_t ECDR_SHIFTS[] = { 0,  1, -1,  0,
@@ -30,10 +31,12 @@ class Encoder {
 
         uint8_t epos;
                         
-        long enc_change_time;       
+        long enc_change_time;  
+
+        
 };
 
 
 };
 
-#endif // encoder_h
+#endif // _ENCODER_H_

@@ -1,5 +1,5 @@
-#ifndef d_buttons
-#define d_buttons
+#ifndef _BUTTON_H_
+#define _BUTTON_H_
 
 #include <Arduino.h>
 
@@ -50,4 +50,4 @@ namespace dbtn {
 }
 
 
-#endif // d_buttons
+#endif // _BUTTON_H_
