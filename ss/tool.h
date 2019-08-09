@@ -28,7 +28,8 @@ namespace sstation {
     typedef enum {
         tssNormal,          
         tssWaitToStandBy,   // user select to switch tool to stand-by mode and should approve it
-        tssWaitToOff        // user select to switch off the tool and should approve it
+        tssWaitToOff,       // user select to switch off the tool and should approve it
+        tssWaitToCancel     // user don't want to turn the tool off or stand it by
     } ToolSubState;
 
     typedef enum {

@@ -22,7 +22,7 @@ namespace sstation {
             void on();
             void off(ToolState off_state); // could be ttOff or ttStandBy
             void set_temp(uint16_t temp);
-            void set_fan_speed(ToolPowerLevel speed);
+            void set_speed(ToolPowerLevel speed);
             void set_timeout(TimeoutType type, uint64_t timeout);
 
             // configuration tool properties
@@ -37,14 +37,14 @@ namespace sstation {
             
             // on-line tool properties. Only for reading
             // Rewriting has no effect on the tool
-            ToolState htr_state;
-            ToolSubState htr_sstate;
+            ToolState state;
+            ToolSubState sstate;
             
             uint16_t curr_temp,
                      sel_temp;
                      
-            ToolPowerLevel fan_speed,
-                           heater_rate;
+            ToolPowerLevel speed,
+                           power;
                            
             uint16_t time_left;   // time left in seconds to idle, 
                                   // stand-by, off state or for approving 
@@ -55,14 +55,14 @@ namespace sstation {
                     ptemp,
                     pmsens;
                     
-            ToolState state;
-            ToolSubState sstate;
+            ToolState st;
+            ToolSubState sst;
             
             uint16_t ctemp,
                      stemp;
                      
-            ToolPowerLevel fspeed,
-                           hrate;
+            ToolPowerLevel spd,
+                           pwr;
 
             uint64_t idle_tout,
                      sby_tout,

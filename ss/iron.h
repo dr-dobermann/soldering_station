@@ -7,6 +7,8 @@
 #include "button.h"
 
 namespace sstation {
+
+    const uint16_t IRON_STD_TEMP = 250;
         
     class Iron {
         public:
@@ -22,7 +24,7 @@ namespace sstation {
             void on();
             void off(ToolState off_state); // could be ttOff or ttStandBy
             void set_temp(uint16_t temp);
-            void set_timeout(TimeoutType type, int64_t timeout);
+            void set_timeout(TimeoutType type, uint64_t timeout);
 
             // configuration tool properties
             inline uint64_t get_timeout(TimeoutType type) {

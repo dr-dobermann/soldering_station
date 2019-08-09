@@ -13,20 +13,20 @@ Fan::Fan(uint8_t heater_pin,
          ptemp(temp_pin),
          pmsens(msensor_pin),
          // properties
-         htr_state(tsOff),
-         htr_sstate(tssNormal),
-         curr_temp(0),
-         sel_temp(0),
-         fan_speed(tplOff),
-         heater_rate(tplOff),
-         time_left(0),
+         state(tsRun),
+         sstate(tssWaitToStandBy),
+         curr_temp(275),
+         sel_temp(350),
+         speed(tplFull),
+         power(tplMedium),
+         time_left(138),
          // fan core values
-         state(tsOff),
-         sstate(tssNormal),
+         st(tsOff),
+         sst(tssNormal),
          ctemp(0),
          stemp(0),
-         fspeed(tplOff),
-         hrate(tplOff),
+         spd(tplOff),
+         pwr(tplOff),
          idle_tout(IDLE_TOUT),
          sby_tout(SBY_TOUT),
          appr_tout(APPR_TOUT),
@@ -68,7 +68,7 @@ void Fan::set_temp(uint16_t temp) {
 }
 //-----------------------------------------------------------------
 
-void Fan::set_fan_speed(ToolPowerLevel speed) {
+void Fan::set_speed(ToolPowerLevel speed) {
     
 }
 //-----------------------------------------------------------------

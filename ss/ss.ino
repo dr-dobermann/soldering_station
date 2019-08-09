@@ -13,8 +13,10 @@
 namespace ss = sstation;
 
 // 'fan', 16x16px
-const uint8_t fan_icon[] = {0xf0, 0x7f, 0xc0, 0x3f, 0x80, 0x1f, 0x80, 0x3f, 0x83, 0xe1, 0x84, 0x00, 0xc8, 0x20, 0xb8, 0x20,
-                            0x08, 0x20, 0x00, 0x00, 0x03, 0xc1, 0x00, 0xc1, 0x80, 0x43, 0x80, 0xe7, 0xc0, 0xff, 0xf1, 0xff};
+const unsigned char fan_icon[] PROGMEM = {
+    0x0f, 0x80, 0x3f, 0xc0, 0x3f, 0xe0, 0x7f, 0xc0, 0x7c, 0x1e, 0x7b, 0xbf, 0x37, 0xdf, 0x47, 0xdf, 
+    0xf7, 0xdf, 0xff, 0xff, 0xfc, 0x3e, 0xff, 0x3e, 0x7f, 0xbc, 0x7f, 0x18, 0x3f, 0x00, 0x0e, 0x00,
+};
 
 const uint8_t 
     // encoder pins
@@ -62,6 +64,16 @@ typedef struct {
     ss::ToolPowerLevel power;
     long time_left;
 } IronState;
+
+typedef struct {
+    ss::ToolState state;
+    ss::ToolSubState sstate;
+    uint16_t temp;
+    uint16_t sel_temp;
+    ss::ToolPowerLevel speed;
+    ss::ToolPowerLevel power;
+    uint16_t time_left;
+} FanState;
 //---------------------------------------------------------------------
 
 Adafruit_ST7735 tft = Adafruit_ST7735(PCS, PDC, PRST);
@@ -72,7 +84,11 @@ encdr::Encoder enc = encdr::Encoder(PENCA, PENCB);
 dbtn::Button enc_btn = dbtn::Button(PBTN);
 dbtn::Button mode_btn = dbtn::Button(PMODE_BTN);
 
-StationMode mode = smIron;
+StationMode mode = smFan; // TODO: change to smOff;
+
+//int16_t pwr_ind_colors[] = {ST77XX_BLUE, ST77XX_GREEN, ST77XX_YELLOW, ST77XX_RED};
+
+char *SPD_NAMES[] = {"OFF", "LOW", "MED", "HIGH", "FULL"};
 //---------------------------------------------------------------------
 
 void cfg(int enc_value, dbtn::BtnStatus enc_btn) {}
@@ -129,7 +145,6 @@ void show_stat() {
 
     static StationMode prevMode;
     static int64_t last_show_time;
-    static IronState istate;
 
     if ( millis() - last_show_time < SHOW_DELAY )
         return;
@@ -157,95 +172,9 @@ void show_stat() {
             else if ( mode == smFan ) 
                 tft.drawRect(0, 64, 160, 64, ST77XX_CYAN);
 
-            //////////////////////////////////////////////////////
-            // show iron state
-            if ( iron.state == ss::tsOff ) {
-                if (istate.state != ss::tsOff ) 
-                    tft.fillRect(1, 1, 158, 62, ST77XX_BLACK);
-                tft.setFont(&FreeMonoBold18pt7b);
-                tft.setTextColor(ST77XX_CYAN);
-                tft.setCursor(50, 45);
-                tft.print("OFF");
-                
-                istate.state = iron.state;
-                break;
-            }
-            if ( istate.temp != iron.curr_temp ) { // current temp
-                tft.setFont(&FreeMonoBold18pt7b);
-                tft.setTextColor(ST77XX_BLACK);
-                tft.setCursor(50, 45);
-                tft.print(istate.temp);
-                tft.setTextColor(ST77XX_CYAN);
-                tft.setCursor(50, 45);
-                tft.print(iron.curr_temp);
-                
-                istate.temp = iron.curr_temp;
-            }
-            if ( istate.sel_temp != iron.sel_temp ) { // selected temp
-                tft.setFont();
-                tft.setTextColor(ST77XX_BLACK);
-                tft.setCursor(10, 10);
-                tft.print("set: ");
-                tft.print(istate.sel_temp);
-                tft.setTextColor(ST77XX_CYAN);
-                tft.setFont();
-                tft.setCursor(10, 10);
-                tft.print("set: ");
-                tft.print(iron.sel_temp);
-
-                istate.sel_temp = iron.sel_temp;
-            }
-            if ( istate.state != iron.state ) { // iron state
-                if ( iron.state == ss::tsIdle ||
-                     iron.state == ss::tsStandBy ) {
-                    tft.setFont();
-                    tft.setTextColor(ST77XX_BLACK);
-                    tft.setCursor(10, 30);
-                    tft.print(iron.state == ss::tsIdle ? "IDL" : "SBY");
-                    tft.setTextColor(ST77XX_CYAN);
-                    tft.setFont();
-                    tft.setCursor(10, 30);
-                    tft.print(iron.state == ss::tsIdle ? "IDL" : "SBY");
-                }
-                else
-                    if ( istate.state == ss::tsIdle ||
-                         istate.state == ss::tsStandBy ) {
-                        tft.setFont();
-                        tft.setTextColor(ST77XX_BLACK);
-                        tft.setCursor(10, 30);
-                        tft.print(iron.state == ss::tsIdle ? "IDL" : "SBY");
-                    }
-                istate.state = iron.state;                
-            }
-//            if ( istate.time_left != istate.time_left ) { // timer
-                tft.setFont();
-                tft.setTextColor(ST77XX_BLACK);
-                tft.setCursor(10, 50);
-                tft.print("-");
-                uint16_t mins = istate.time_left / 60;
-                tft.print(mins);
-                tft.print(":");
-                uint16_t secs = istate.time_left/1000 % 60;
-                if ( secs < 10 )
-                    tft.print("0");
-                tft.print(secs);
-                
-                tft.setTextColor(ST77XX_CYAN);
-                tft.setCursor(10, 50);
-                tft.print("- ");
-                mins = iron.time_left / 60;
-                tft.print(mins);
-                tft.print(":");
-                secs = iron.time_left % 60;
-                if ( secs < 10 )
-                    tft.print("0");
-                tft.print(secs);
-
-                istate.time_left = iron.time_left;
-//            }
+            show_iron_info();
             
-            //////////////////////////////////////////////////////
-            // show fan state
+            show_fan_info();
 
 
             break;
@@ -257,3 +186,287 @@ void show_stat() {
     last_show_time = millis();
 }
 //---------------------------------------------------------------------
+
+void show_iron_info() {
+
+    static IronState istate;
+
+    if ( iron.state == ss::tsOff ) {
+        if (istate.state != ss::tsOff ) 
+            tft.fillRect(1, 1, 158, 62, ST77XX_BLACK);
+        tft.setFont(&FreeMonoBold18pt7b);
+        tft.setTextColor(ST77XX_CYAN);
+        tft.setCursor(50, 45);
+        tft.print("OFF");
+        
+        istate.state = iron.state;
+        return;
+    }
+    if ( istate.temp != iron.curr_temp ) { // current temp
+        tft.setFont(&FreeMonoBold18pt7b);
+        tft.setTextColor(ST77XX_BLACK);
+        tft.setCursor(50, 45);
+        tft.print(istate.temp);
+        tft.setTextColor(ST77XX_CYAN);
+        tft.setCursor(50, 45);
+        tft.print(iron.curr_temp);   
+
+        istate.temp = iron.curr_temp;
+    }
+    if ( istate.sel_temp != iron.sel_temp ) { // selected temp
+        tft.setFont();
+        tft.setTextColor(ST77XX_BLACK);
+        tft.setCursor(10, 10);
+        tft.print("SET: ");
+        tft.print(istate.sel_temp);
+        tft.setTextColor(ST77XX_CYAN);
+        tft.setCursor(10, 10);
+        tft.print("SET: ");
+        tft.setTextColor(ST77XX_YELLOW);
+        tft.print(iron.sel_temp);
+
+        istate.sel_temp = iron.sel_temp;
+    }
+    if ( istate.state != iron.state ) { // iron state
+        if ( iron.state == ss::tsIdle ||
+             iron.state == ss::tsStandBy ) {
+            tft.setFont();
+            tft.setTextColor(ST77XX_BLACK);
+            tft.setCursor(10, 25);
+            tft.print(iron.state == ss::tsIdle ? "IDLE" : "STNBY");
+            tft.setTextColor(ST77XX_CYAN);
+            tft.setCursor(10, 25);
+            tft.print(iron.state == ss::tsIdle ? "IDLE" : "STNBY");
+        }
+        else
+            if ( istate.state == ss::tsIdle ||
+                 istate.state == ss::tsStandBy ) {
+                tft.setFont();
+                tft.setTextColor(ST77XX_BLACK);
+                tft.setCursor(10, 25);
+                tft.print(iron.state == ss::tsIdle ? "IDLE" : "SNDBY");
+            }
+        istate.state = iron.state;                
+    }
+    if ( istate.time_left != iron.time_left ) { // timer
+        tft.setFont();
+        tft.setTextColor(ST77XX_BLACK);
+        tft.setCursor(10, 35);
+        tft.print("-");
+        tft.print(istate.time_left / 60);
+        tft.print(":");
+        uint16_t secs = istate.time_left/1000 % 60;
+        if ( secs < 10 )
+            tft.print("0");
+        tft.print(secs);
+        
+        tft.setTextColor(ST77XX_CYAN);
+        tft.setCursor(10, 35);
+        tft.print("-");
+        tft.print(iron.time_left / 60);
+        tft.print(":");
+        secs = iron.time_left % 60;
+        if ( secs < 10 )
+            tft.print("0");
+        tft.print(secs);
+
+        istate.time_left = iron.time_left;
+    }
+
+    if ( istate.power != iron.power ) { // iron power
+        tft.setFont();
+        tft.setTextColor(ST77XX_BLACK);
+        tft.setCursor(125, 40);
+        tft.print(istate.power * 25);
+        tft.print("%");
+        tft.setTextColor(ST77XX_YELLOW);
+        tft.setCursor(125, 40);
+        tft.print(iron.power * 25);
+        tft.print("%");
+
+        for ( int l = 1; l <= istate.power; l++ ) {
+            tft.drawRect(125, 30 - (l - 1)*8, 25, 3, ST77XX_BLACK);
+            tft.drawRect(125, 30 - (l - 1)*8 + 4, 25, 3, ST77XX_BLACK);
+        }
+
+        for ( int l = 1; l <= iron.power; l++ ) {
+            tft.drawRect(125, 30 - (l - 1)*8, 25, 3, ST77XX_CYAN);
+            tft.drawRect(125, 30 - (l - 1)*8 + 4, 25, 3, ST77XX_CYAN);
+//            tft.drawRect(125, 30 - (l - 1)*8, 25, 3, pwr_ind_colors[l - 1]);
+//            tft.drawRect(125, 30 - (l - 1)*8 + 4, 25, 3, pwr_ind_colors[l - 1]);
+        }
+                    
+        istate.power = iron.power;
+    }
+
+    if ( istate.sstate != iron.sstate ) {  // substate
+        tft.setFont();
+        tft.setTextColor(ST77XX_BLACK);
+        tft.setCursor(7, 52);
+        tft.print("[OFF] [STND-BY] [CNCL]");
+        tft.setTextColor(ST77XX_YELLOW);
+        tft.setCursor(7, 52);
+        switch ( iron.sstate ) {
+            case ss::tssWaitToStandBy:
+                tft.print(" OFF  [STND-BY]  CANCEL ");
+                break;
+            case ss::tssWaitToOff:
+                tft.print("[OFF]  STND-BY   CANCEL ");
+                break;
+            case ss::tssWaitToCancel:
+                tft.print(" OFF   STND-BY  [CANCEL]");
+                break;
+        }
+        
+        istate.sstate = iron.sstate;
+    }
+}
+//---------------------------------------------------------------------
+
+void show_fan_info() {
+    
+    static FanState fstate;
+
+    if ( fan.state == ss::tsOff ) {
+        if (fstate.state != ss::tsOff ) 
+            tft.fillRect(1, 65, 158, 62, ST77XX_BLACK);
+        tft.setFont(&FreeMonoBold18pt7b);
+        tft.setTextColor(ST77XX_CYAN);
+        tft.setCursor(50, 109);
+        tft.print("OFF");
+        
+        fstate.state = fan.state;
+        return;
+    }
+    if ( fstate.temp != fan.curr_temp ) { // current temp
+        tft.setFont(&FreeMonoBold18pt7b);
+        tft.setTextColor(ST77XX_BLACK);
+        tft.setCursor(50, 109);
+        tft.print(fstate.temp);
+        tft.setTextColor(ST77XX_CYAN);
+        tft.setCursor(50, 109);
+        tft.print(fan.curr_temp);
+        
+        
+        fstate.temp = fan.curr_temp;
+    }
+    if ( fstate.sel_temp != fan.sel_temp ) { // selected temp
+        tft.setFont();
+        tft.setTextColor(ST77XX_BLACK);
+        tft.setCursor(10, 74);
+        tft.print("SET: ");
+        tft.print(fstate.sel_temp);
+        tft.setTextColor(ST77XX_CYAN);
+        tft.setCursor(10, 74);
+        tft.print("SET: ");
+        tft.setTextColor(ST77XX_YELLOW);
+        tft.print(fan.sel_temp);
+
+        fstate.sel_temp = fan.sel_temp;
+    }
+    if ( fstate.speed != fan.speed ) { // speed
+        tft.drawBitmap(70, 70, fan_icon, 16, 16, ST77XX_CYAN);
+        tft.setFont();
+        tft.setTextColor(ST77XX_BLACK);
+        tft.setCursor(90, 74);
+        tft.print(SPD_NAMES[fstate.speed]);
+        tft.setCursor(90, 74);
+        tft.setTextColor(ST77XX_YELLOW);
+        tft.print(SPD_NAMES[fan.speed]);
+
+        fstate.speed = fan.speed;
+    }
+    if ( fstate.state != fan.state ) { // fan state
+        if ( fan.state == ss::tsIdle ||
+             fan.state == ss::tsStandBy ) {
+            tft.setFont();
+            tft.setTextColor(ST77XX_BLACK);
+            tft.setCursor(10, 89);
+            tft.print(fan.state == ss::tsIdle ? "IDLE" : "STNBY");
+            tft.setTextColor(ST77XX_CYAN);
+            tft.setCursor(10, 89);
+            tft.print(fan.state == ss::tsIdle ? "IDLE" : "STNBY");
+        }
+        else
+            if ( fstate.state == ss::tsIdle ||
+                 fstate.state == ss::tsStandBy ) {
+                tft.setFont();
+                tft.setTextColor(ST77XX_BLACK);
+                tft.setCursor(10, 89);
+                tft.print(fan.state == ss::tsIdle ? "IDLE" : "SNDBY");
+            }
+        fstate.state = fan.state;                
+    }
+    if ( fstate.time_left != fan.time_left ) { // timer
+        tft.setFont();
+        tft.setTextColor(ST77XX_BLACK);
+        tft.setCursor(10, 99);
+        tft.print("-");
+        tft.print(fstate.time_left / 60);
+        tft.print(":");
+        uint16_t secs = fstate.time_left/1000 % 60;
+        if ( secs < 10 )
+            tft.print("0");
+        tft.print(secs);
+        
+        tft.setTextColor(ST77XX_CYAN);
+        tft.setCursor(10, 99);
+        tft.print("-");
+        tft.print(fan.time_left / 60);
+        tft.print(":");
+        secs = fan.time_left % 60;
+        if ( secs < 10 )
+            tft.print("0");
+        tft.print(secs);
+
+        fstate.time_left = fan.time_left;
+    }
+
+    if ( fstate.power != fan.power ) { // fan power
+        tft.setFont();
+        tft.setTextColor(ST77XX_BLACK);
+        tft.setCursor(125, 104);
+        tft.print(fstate.power * 25);
+        tft.print("%");
+        tft.setTextColor(ST77XX_YELLOW);
+        tft.setCursor(125, 104);
+        tft.print(fan.power * 25);
+        tft.print("%");
+
+        for ( int l = 1; l <= fstate.power; l++ ) {
+            tft.drawRect(125, 94 - (l - 1)*8, 25, 3, ST77XX_BLACK);
+            tft.drawRect(125, 94 - (l - 1)*8 + 4, 25, 3, ST77XX_BLACK);
+        }
+
+        for ( int l = 1; l <= fan.power; l++ ) {
+            tft.drawRect(125, 94 - (l - 1)*8, 25, 3, ST77XX_CYAN);
+            tft.drawRect(125, 94 - (l - 1)*8 + 4, 25, 3, ST77XX_CYAN);
+//            tft.drawRect(125, 94 - (l - 1)*8, 25, 3, pwr_ind_colors[l - 1]);
+//            tft.drawRect(125, 94 - (l - 1)*8 + 4, 25, 3, pwr_ind_colors[l - 1]);
+        }
+                    
+        fstate.power = fan.power;
+    }
+
+    if ( fstate.sstate != fan.sstate ) {  // substate
+        tft.setFont();
+        tft.setTextColor(ST77XX_BLACK);
+        tft.setCursor(7, 116);
+        tft.print("[OFF] [STND-BY] [CNCL]");
+        tft.setTextColor(ST77XX_YELLOW);
+        tft.setCursor(7, 116);
+        switch ( fan.sstate ) {
+            case ss::tssWaitToStandBy:
+                tft.print(" OFF  [STND-BY]  CANCEL ");
+                break;
+            case ss::tssWaitToOff:
+                tft.print("[OFF]  STND-BY   CANCEL ");
+                break;
+            case ss::tssWaitToCancel:
+                tft.print(" OFF   STND-BY  [CANCEL]");
+                break;
+        }
+        
+        fstate.sstate = fan.sstate;
+    }    
+}
