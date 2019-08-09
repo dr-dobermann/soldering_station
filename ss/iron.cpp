@@ -13,15 +13,15 @@ Iron::Iron(uint8_t iron_pin,
            pssens(ssensor_pin),
            pstchk(stick_pin),
            // on-line properties
-           iron_state(tsOff),
-           iron_sstate(tssNormal),
-           curr_temp(0),
-           sel_temp(0),
-           iron_power(tplOff),
-           time_left(0),
-           // iron core values
-           state(tsOff),
+           state(tsIdle),
            sstate(tssNormal),
+           curr_temp(250),
+           sel_temp(250),
+           power(tplHigh),
+           time_left(179*1000),
+           // iron core values
+           st(tsOff),
+           sst(tssNormal),
            ctemp(0),
            stemp(0),
            pwr(tplOff),
@@ -40,6 +40,9 @@ Iron::Iron(uint8_t iron_pin,
 //-----------------------------------------------------------------
 
 void Iron::tick(int enc_value, dbtn::BtnStatus enc_btn) {}
+//-----------------------------------------------------------------
+
+void Iron::tick() {}
 //-----------------------------------------------------------------
 
 void Iron::on() {}

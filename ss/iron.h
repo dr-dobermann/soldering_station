@@ -17,6 +17,7 @@ namespace sstation {
 
             // run one cycle for the tool
             void tick(int enc_value, dbtn::BtnStatus enc_btn);
+            void tick(); // background call
 
             void on();
             void off(ToolState off_state); // could be ttOff or ttStandBy
@@ -35,15 +36,15 @@ namespace sstation {
 
             // tool properties. Only for reading
             // Rewriting has no effect on the tool
-            ToolState iron_state;
-            ToolSubState iron_sstate;
+            ToolState state;
+            ToolSubState sstate;
             
             uint16_t curr_temp,
                      sel_temp;
                      
-            ToolPowerLevel iron_power;
+            ToolPowerLevel power;
                            
-            int64_t time_left;   // time left to idle, stand-by, off state or for approving 
+            long time_left;   // time left to idle, stand-by, off state or for approving 
                     
         private:
             uint8_t piron,
@@ -51,15 +52,15 @@ namespace sstation {
                     pssens,
                     pstchk;
                     
-            ToolState state;
-            ToolSubState sstate;
+            ToolState st;
+            ToolSubState sst;
             
             uint16_t ctemp,
                      stemp;
                      
             ToolPowerLevel pwr;
 
-            int64_t idle_tout,
+            long idle_tout,
                     sby_tout,
                     appr_tout,
                     next_tout;   // timelimit to next state or substate

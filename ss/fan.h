@@ -17,6 +17,7 @@ namespace sstation {
 
             // run one cycle for the tool
             void tick(int enc_value, dbtn::BtnStatus enc_btn);
+            void tick(); // background call
 
             void on();
             void off(ToolState off_state); // could be ttOff or ttStandBy

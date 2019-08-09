@@ -17,7 +17,7 @@ namespace dbtn {
 
     class Button {
         public:
-            Button(uint8_t _btn_pin);
+            Button(uint8_t btn_pin);
 
             // update button status
             void tick();
@@ -47,7 +47,7 @@ namespace dbtn {
                  btn_on_time;            
     };
     
-}
+}; // dbtn
 
 
 #endif // _BUTTON_H_
