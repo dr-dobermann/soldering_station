@@ -73,7 +73,7 @@ void Fan::set_fan_speed(ToolPowerLevel speed) {
 }
 //-----------------------------------------------------------------
 
-void Fan::set_timeout(TimeoutType type, int64_t timeout) {
+void Fan::set_timeout(TimeoutType type, uint64_t timeout) {
     
 }
 //-----------------------------------------------------------------

@@ -25,7 +25,7 @@ namespace sstation {
             void set_timeout(TimeoutType type, int64_t timeout);
 
             // configuration tool properties
-            inline int64_t get_timeout(TimeoutType type, int64_t timeout) {
+            inline uint64_t get_timeout(TimeoutType type) {
                 switch (type) {
                     case ttIdle:    return idle_tout;
                     case ttStandBy: return sby_tout;
@@ -44,7 +44,8 @@ namespace sstation {
                      
             ToolPowerLevel power;
                            
-            long time_left;   // time left to idle, stand-by, off state or for approving 
+            uint16_t time_left;   // time left in seconds to idle, 
+                                  // stand-by, off state or for approving 
                     
         private:
             uint8_t piron,
@@ -60,10 +61,10 @@ namespace sstation {
                      
             ToolPowerLevel pwr;
 
-            long idle_tout,
-                    sby_tout,
-                    appr_tout,
-                    next_tout;   // timelimit to next state or substate
+            uint64_t idle_tout,
+                     sby_tout,
+                     appr_tout,
+                     next_tout;   // timelimit to next state or substate
 
     }; // class Iron
     

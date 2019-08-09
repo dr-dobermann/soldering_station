@@ -23,10 +23,10 @@ namespace sstation {
             void off(ToolState off_state); // could be ttOff or ttStandBy
             void set_temp(uint16_t temp);
             void set_fan_speed(ToolPowerLevel speed);
-            void set_timeout(TimeoutType type, int64_t timeout);
+            void set_timeout(TimeoutType type, uint64_t timeout);
 
             // configuration tool properties
-            inline int64_t get_timeout(TimeoutType type, int64_t timeout) {
+            inline uint64_t get_timeout(TimeoutType type) {
                 switch (type) {
                     case ttIdle:    return idle_tout;
                     case ttStandBy: return sby_tout;
@@ -46,7 +46,8 @@ namespace sstation {
             ToolPowerLevel fan_speed,
                            heater_rate;
                            
-            int64_t time_left;   // time left to idle, stand-by, off state or for approving 
+            uint16_t time_left;   // time left in seconds to idle, 
+                                  // stand-by, off state or for approving 
                     
         private:
             uint8_t phtr,
@@ -63,10 +64,10 @@ namespace sstation {
             ToolPowerLevel fspeed,
                            hrate;
 
-            int64_t idle_tout,
-                    sby_tout,
-                    appr_tout,
-                    next_tout;   // timelimit to next state or substate 
+            uint64_t idle_tout,
+                     sby_tout,
+                     appr_tout,
+                     next_tout;   // timelimit to next state or substate 
             
     }; // class Fan
     

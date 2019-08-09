@@ -222,10 +222,10 @@ void show_stat() {
                 tft.setTextColor(ST77XX_BLACK);
                 tft.setCursor(10, 50);
                 tft.print("-");
-                int mins = ((long)(istate.time_left/1000)) / 60;
+                uint16_t mins = istate.time_left / 60;
                 tft.print(mins);
                 tft.print(":");
-                int secs = (istate.time_left/1000) % 60;
+                uint16_t secs = istate.time_left/1000 % 60;
                 if ( secs < 10 )
                     tft.print("0");
                 tft.print(secs);
@@ -233,10 +233,10 @@ void show_stat() {
                 tft.setTextColor(ST77XX_CYAN);
                 tft.setCursor(10, 50);
                 tft.print("- ");
-                mins = ((long)(iron.time_left/1000)) / 60;
+                mins = iron.time_left / 60;
                 tft.print(mins);
                 tft.print(":");
-                secs = (iron.time_left/1000) % 60;
+                secs = iron.time_left % 60;
                 if ( secs < 10 )
                     tft.print("0");
                 tft.print(secs);

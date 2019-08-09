@@ -18,7 +18,7 @@ Iron::Iron(uint8_t iron_pin,
            curr_temp(250),
            sel_temp(250),
            power(tplHigh),
-           time_left(179*1000),
+           time_left(179),
            // iron core values
            st(tsOff),
            sst(tssNormal),
@@ -54,5 +54,5 @@ void Iron::off(ToolState off_state) {}
 void Iron::set_temp(uint16_t temp) {}
 //-----------------------------------------------------------------
 
-void Iron::set_timeout(TimeoutType type, int64_t timeout) {}
+void Iron::set_timeout(TimeoutType type, uint64_t timeout) {}
 //-----------------------------------------------------------------
