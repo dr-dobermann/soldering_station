@@ -6,7 +6,7 @@
 namespace dbtn {
 
     const long
-        LONG_PRESS = 200,
+        LONG_PRESS = 400,
         DEBOUNCE_BTN = 50;
 
     typedef struct {

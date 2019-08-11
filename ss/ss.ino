@@ -56,6 +56,14 @@ typedef enum {
     smConfig
 } StationMode;
 
+typedef enum {
+    ssmNormal = 0,
+    ssmWaitForCfg,      // Station configuration selected, wait for approval
+    ssmWaitForOff,      // Station OFF selected, wait for approval
+    ssmWaitForCancel,   // Cancel of Station Off is waiting for approval
+    ssmTurningOff       // Shutdown initiated and station waits for tools to turn off
+} StationSubMode;
+
 typedef struct {
     uint16_t temp;
     uint16_t sel_temp;
@@ -84,7 +92,8 @@ encdr::Encoder enc = encdr::Encoder(PENCA, PENCB);
 dbtn::Button enc_btn = dbtn::Button(PBTN);
 dbtn::Button mode_btn = dbtn::Button(PMODE_BTN);
 
-StationMode mode = smFan; // TODO: change to smOff;
+StationMode mode = smOff;
+StationSubMode smode = ssmNormal;
 
 //int16_t pwr_ind_colors[] = {ST77XX_BLUE, ST77XX_GREEN, ST77XX_YELLOW, ST77XX_RED};
 
@@ -111,13 +120,86 @@ void loop() {
     enc_btn.tick();
     mode_btn.tick();
 
-    // check mode button
-    // and update mode if needed
+    static uint64_t appr_time; // approval deadline time
+                               // if there is no approval in a given time
+                               // station returns into ssmNormal submode
 
-    switch (mode) {
+    if ( mode_btn.get_btn_pressed() > 0 ) {
+        if ( mode != smOff ) {
+            switch ( smode ) {
+                case ssmNormal:
+                    mode = (mode == smFan ? smIron : smFan);
+                    break;
+
+                case ssmWaitForCfg:
+                    mode = smConfig;
+                    smode = ssmNormal;
+                    break;
+                    
+                case ssmWaitForOff:
+                    mode = smOff; 
+                    smode = ssmTurningOff; 
+                    break;
+                    
+                case ssmWaitForCancel:
+                    smode = ssmNormal;
+                    break;
+            }            
+        } 
+        else 
+            if ( mode == smOff ) {
+                mode = smIron;
+                smode = ssmNormal;
+            }
+    }
+
+    if ( mode != smOff && mode != smConfig && mode_btn.get_lbtn_pressed() > 0 )
+        smode = ssmWaitForCfg;
+        
+    // if an user select station config or shut down, check encoder to approve or cancel it
+    if ( mode != smOff and (smode == ssmWaitForCfg ||
+                            smode == ssmWaitForOff || 
+                            smode == ssmWaitForCancel) ) {
+        int eval = enc.get_value();
+        if ( eval > 0 ) {
+            smode = smode + 1;
+            if ( smode > ssmWaitForCancel )
+                smode = ssmWaitForOff;
+        }
+        else 
+            if ( eval < 0 ) {
+                smode = smode - 1;
+                if ( smode < ssmWaitForCfg )
+                    smode = ssmWaitForCancel;
+            }
+        
+    
+        if ( enc_btn.get_btn_pressed() > 0 )
+            switch ( smode ) {
+                case ssmWaitForCfg:
+                    mode = smConfig;
+                    smode = ssmNormal;
+                    break;
+                    
+                case ssmWaitForOff:
+                    mode = smOff;
+                    smode = ssmTurningOff; 
+                    break;
+
+                case ssmWaitForCancel:
+                    smode = ssmNormal;
+                    break;
+            }
+    }
+
+    switch ( mode ) {
         case smOff:
             iron.off(ss::tsOff);
             fan.off(ss::tsOff);
+            if ( smode == ssmTurningOff &&     // if station is shutting down,
+                 iron.state == ss::tsOff &&    // check actual tools' states
+                 fan.state == ss::tsOff )      // and if they're off, then off the station
+                smode = ssmNormal;
             break;
             
         case smIron:
@@ -130,7 +212,7 @@ void loop() {
             iron.tick();
             break;
             
-        smConfig:
+        case smConfig:
             fan.tick();
             iron.tick();
             cfg(enc.get_value(), enc_btn.get_status());
@@ -144,39 +226,90 @@ void loop() {
 void show_stat() {
 
     static StationMode prevMode;
+    static StationSubMode prevSMode;
     static int64_t last_show_time;
+
+    bool updateTools = false;
 
     if ( millis() - last_show_time < SHOW_DELAY )
         return;
         
     if ( prevMode != mode ) {
         prevMode = mode;
+        updateTools = true;
         tft.fillScreen(ST77XX_BLACK);
     }
     
     switch ( mode ) {
         case smOff:
             tft.setFont(&FreeMonoBold12pt7b);
-            tft.setTextColor(ST77XX_CYAN, ST77XX_BLACK);
-            tft.setCursor(10, 60);
-            tft.print("Station is");            
-            tft.setCursor(60, 80);
-            tft.print("OFF");
+            tft.setTextColor(ST77XX_CYAN);
+
+            if ( prevSMode != smode && prevSMode == ssmTurningOff ) {   // clear last line to prevent screen flicking
+                tft.fillScreen(ST77XX_BLACK);
+                prevSMode = smode;
+            }
+
+            if ( prevSMode != smode && smode == ssmTurningOff ) {
+                tft.setCursor(10, 60);
+                tft.print("Station is");
+                tft.setCursor(20, 80);
+                tft.print("shutting");
+                tft.setCursor(30, 100);
+                tft.print("down...");
+                
+                prevSMode = smode;
+            }
+
+            if ( smode == ssmNormal ) {
+                tft.setCursor(10, 60);
+                tft.print("Station is");
+                tft.setCursor(60, 80);
+                tft.print("OFF");
+            }
             break;
             
         case smIron:
         case smFan:
             // show active tool
-            if ( mode == smIron )
-                tft.drawRect(0, 0, 160, 64, ST77XX_CYAN);
-            else if ( mode == smFan ) 
-                tft.drawRect(0, 64, 160, 64, ST77XX_CYAN);
+//            if ( smode == ssmNormal && prevSMode != smode ) {
+//                prevSMode = smode;
+//                tft.fillScreen(ST77XX_BLACK);
+//            }
+            if ( smode == ssmNormal )
+                if ( mode == smIron ) {
+                    tft.drawRect(0, 64, 160, 64, ST77XX_BLACK);
+                    tft.drawRect(0, 0, 160, 64, ST77XX_CYAN);
+                }
+                else { 
+                    tft.drawRect(0, 0, 160, 64, ST77XX_BLACK);
+                    tft.drawRect(0, 64, 160, 64, ST77XX_CYAN);
+                }
 
-            show_iron_info();
+            show_iron_info(updateTools);
             
-            show_fan_info();
+            show_fan_info(updateTools);
 
-
+            if ( prevSMode != smode && (smode == ssmWaitForOff || 
+                                        smode == ssmWaitForCancel ||
+                                        smode == ssmWaitForCfg) ) {
+                tft.fillRect(20, 50, 140, 30, ST77XX_BLACK);
+                tft.drawRect(22, 52, 136, 26, ST77XX_CYAN);
+                tft.setFont();
+                tft.setTextColor(ST77XX_BLACK);
+                tft.setCursor(24, 64);
+                tft.print("[CFG] [OFF] [CANCEL]");
+                tft.setTextColor(ST77XX_YELLOW);
+                tft.setCursor(24, 64);
+                if ( smode == ssmWaitForOff )
+                    tft.print(" CFG  [OFF]  CANCEL ");
+                else if ( smode == ssmWaitForCancel )
+                    tft.print(" CFG   OFF  [CANCEL]");
+                else
+                    tft.print("[CFG]  OFF   CANCEL ");
+                    
+                prevSMode = smode;
+            }
             break;
             
         case smConfig:
@@ -187,12 +320,15 @@ void show_stat() {
 }
 //---------------------------------------------------------------------
 
-void show_iron_info() {
+void show_iron_info(bool updateTool) {
 
     static IronState istate;
 
+    if ( updateTool )
+        memset(&istate, 0, sizeof(IronState));
+
     if ( iron.state == ss::tsOff ) {
-        if (istate.state != ss::tsOff ) 
+        if ( istate.state != ss::tsOff ) 
             tft.fillRect(1, 1, 158, 62, ST77XX_BLACK);
         tft.setFont(&FreeMonoBold18pt7b);
         tft.setTextColor(ST77XX_CYAN);
@@ -200,7 +336,7 @@ void show_iron_info() {
         tft.print("OFF");
         
         istate.state = iron.state;
-        return;
+        //return;
     }
     if ( istate.temp != iron.curr_temp ) { // current temp
         tft.setFont(&FreeMonoBold18pt7b);
@@ -323,9 +459,12 @@ void show_iron_info() {
 }
 //---------------------------------------------------------------------
 
-void show_fan_info() {
+void show_fan_info(bool updateTool) {
     
     static FanState fstate;
+
+    if ( updateTool )
+        memset(&fstate, 0, sizeof(IronState));
 
     if ( fan.state == ss::tsOff ) {
         if (fstate.state != ss::tsOff ) 
@@ -365,7 +504,7 @@ void show_fan_info() {
         fstate.sel_temp = fan.sel_temp;
     }
     if ( fstate.speed != fan.speed ) { // speed
-        tft.drawBitmap(70, 70, fan_icon, 16, 16, ST77XX_CYAN);
+        tft.drawBitmap(70, 68, fan_icon, 16, 16, ST77XX_CYAN);
         tft.setFont();
         tft.setTextColor(ST77XX_BLACK);
         tft.setCursor(90, 74);

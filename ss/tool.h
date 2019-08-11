@@ -18,6 +18,7 @@ namespace sstation {
 
     typedef enum {
         tsOff,
+        tsShuttingDown, // only used by fan since it should cool down the heater
         tsStandBy,
         tsIdle,
         tsRun,
