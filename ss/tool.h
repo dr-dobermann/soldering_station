@@ -21,13 +21,14 @@ namespace sstation {
         tsShuttingDown, // only used by fan since it should cool down the heater
         tsStandBy,
         tsIdle,
-        tsRun,
-        tsCheck,        // only used by iron
-        tsTempCheck     // only used by iron
+        tsRun
     } ToolState;
 
     typedef enum {
-        tssNormal,          
+        tssNormal,          // heater not run
+        tssHeat,          
+        tsCheck,            // only used by iron
+        tsTempCheck,         // only used by iron
         tssWaitToStandBy,   // user select to switch tool to stand-by mode and should approve it
         tssWaitToOff,       // user select to switch off the tool and should approve it
         tssWaitToCancel     // user don't want to turn the tool off or stand it by

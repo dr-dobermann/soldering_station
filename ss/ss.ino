@@ -336,7 +336,7 @@ void show_iron_info(bool updateTool) {
         tft.print("OFF");
         
         istate.state = iron.state;
-        //return;
+        return;
     }
     if ( istate.temp != iron.curr_temp ) { // current temp
         tft.setFont(&FreeMonoBold18pt7b);

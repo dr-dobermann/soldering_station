@@ -8,7 +8,9 @@
 
 namespace sstation {
 
-    const uint16_t IRON_STD_TEMP = 250;
+    const uint16_t IRON_STD_TEMP = 250,
+                   IRON_MAX_TEMP = 480,
+                   IRON_SBY_TEMP = 100;
         
     class Iron {
         public:
@@ -25,6 +27,7 @@ namespace sstation {
             void off(ToolState off_state); // could be ttOff or ttStandBy
             void set_temp(uint16_t temp);
             void set_timeout(TimeoutType type, uint64_t timeout);
+            void set_sby_temp(uint16_t new_sby_temp);  // set stand-by temp
 
             // configuration tool properties
             inline uint64_t get_timeout(TimeoutType type) {
@@ -42,7 +45,8 @@ namespace sstation {
             ToolSubState sstate;
             
             uint16_t curr_temp,
-                     sel_temp;
+                     sel_temp,
+                     sby_temp;
                      
             ToolPowerLevel power;
                            
@@ -59,7 +63,8 @@ namespace sstation {
             ToolSubState sst;
             
             uint16_t ctemp,
-                     stemp;
+                     stemp,
+                     sbytemp;
                      
             ToolPowerLevel pwr;
 
