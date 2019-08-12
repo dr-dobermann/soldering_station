@@ -364,23 +364,21 @@ void show_iron_info(bool updateTool) {
         istate.sel_temp = iron.sel_temp;
     }
     if ( istate.state != iron.state ) { // iron state
-        if ( iron.state == ss::tsIdle ||
-             iron.state == ss::tsStandBy ) {
+        if ( iron.state == ss::tsStandBy ) {
             tft.setFont();
             tft.setTextColor(ST77XX_BLACK);
             tft.setCursor(10, 25);
-            tft.print(iron.state == ss::tsIdle ? "IDLE" : "STNBY");
+            tft.print(iron.state == ss::tsStandBy ? "SNDBY" : "NORM");
             tft.setTextColor(ST77XX_CYAN);
             tft.setCursor(10, 25);
-            tft.print(iron.state == ss::tsIdle ? "IDLE" : "STNBY");
+            tft.print(iron.state == ss::tsStandBy ? "SNDBY" : "NORM");
         }
         else
-            if ( istate.state == ss::tsIdle ||
-                 istate.state == ss::tsStandBy ) {
+            if ( istate.state == ss::tsStandBy ) {
                 tft.setFont();
                 tft.setTextColor(ST77XX_BLACK);
                 tft.setCursor(10, 25);
-                tft.print(iron.state == ss::tsIdle ? "IDLE" : "SNDBY");
+                tft.print(iron.state == ss::tsStandBy ? "SNDBY" : "NORM");
             }
         istate.state = iron.state;                
     }
@@ -516,23 +514,21 @@ void show_fan_info(bool updateTool) {
         fstate.speed = fan.speed;
     }
     if ( fstate.state != fan.state ) { // fan state
-        if ( fan.state == ss::tsIdle ||
-             fan.state == ss::tsStandBy ) {
+        if ( fan.state == ss::tsStandBy ) {
             tft.setFont();
             tft.setTextColor(ST77XX_BLACK);
             tft.setCursor(10, 89);
-            tft.print(fan.state == ss::tsIdle ? "IDLE" : "STNBY");
+            tft.print(fan.state == ss::tsStandBy ? "STNBY" : "NORM");
             tft.setTextColor(ST77XX_CYAN);
             tft.setCursor(10, 89);
-            tft.print(fan.state == ss::tsIdle ? "IDLE" : "STNBY");
+            tft.print(fan.state == ss::tsStandBy ? "STNBY" : "NORM");
         }
         else
-            if ( fstate.state == ss::tsIdle ||
-                 fstate.state == ss::tsStandBy ) {
+            if ( fstate.state == ss::tsStandBy ) {
                 tft.setFont();
                 tft.setTextColor(ST77XX_BLACK);
                 tft.setCursor(10, 89);
-                tft.print(fan.state == ss::tsIdle ? "IDLE" : "SNDBY");
+                tft.print(fan.state == ss::tsStandBy ? "SNDBY" : "NORM");
             }
         fstate.state = fan.state;                
     }

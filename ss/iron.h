@@ -11,6 +11,8 @@ namespace sstation {
     const uint16_t IRON_STD_TEMP = 250,
                    IRON_MAX_TEMP = 480,
                    IRON_SBY_TEMP = 100;
+
+    const uint64_t MAX_HEATING_TIME = 100; // MICROseconds
         
     class Iron {
         public:
@@ -23,7 +25,6 @@ namespace sstation {
             void tick(int enc_value, dbtn::BtnStatus enc_btn);
             void tick(); // background call
 
-            void on();
             void off(ToolState off_state); // could be ttOff or ttStandBy
             void set_temp(uint16_t temp);
             void set_timeout(TimeoutType type, uint64_t timeout);
@@ -46,6 +47,7 @@ namespace sstation {
             
             uint16_t curr_temp,
                      sel_temp,
+                     wrk_temp,
                      sby_temp;
                      
             ToolPowerLevel power;
@@ -64,6 +66,7 @@ namespace sstation {
             
             uint16_t ctemp,
                      stemp,
+                     wrktemp,
                      sbytemp;
                      
             ToolPowerLevel pwr;
@@ -72,6 +75,11 @@ namespace sstation {
                      sby_tout,
                      appr_tout,
                      next_tout;   // timelimit to next state or substate
+
+            uint64_t heat_start_time; // heating starting time in MICROseconds
+
+            uint8_t sw_prev_state;   // iron shake sensor previous state;
+            uint64_t sw_last_time;   // last time shake sensor check
 
     }; // class Iron
     
