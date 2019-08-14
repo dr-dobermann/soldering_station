@@ -38,7 +38,7 @@ namespace sstation {
             // on-line tool properties. Only for reading
             // Rewriting has no effect on the tool
             ToolState state;
-            ToolSubState sstate;
+            ToolMenuState mstate;
             
             uint16_t curr_temp,
                      sel_temp;
@@ -57,6 +57,7 @@ namespace sstation {
                     
             ToolState st;
             ToolSubState sst;
+            ToolMenuState mst;
             
             uint16_t ctemp,
                      stemp;

@@ -26,9 +26,8 @@ namespace sstation {
             void tick(); // background call
 
             void off(ToolState off_state); // could be ttOff or ttStandBy
-            void set_temp(uint16_t temp);
+            void set_temp(TempType type, uint16_t temp);
             void set_timeout(TimeoutType type, uint64_t timeout);
-            void set_sby_temp(uint16_t new_sby_temp);  // set stand-by temp
 
             // configuration tool properties
             inline uint64_t get_timeout(TimeoutType type) {
@@ -43,7 +42,7 @@ namespace sstation {
             // tool properties. Only for reading
             // Rewriting has no effect on the tool
             ToolState state;
-            ToolSubState sstate;
+            ToolMenuState mstate;
             
             uint16_t curr_temp,
                      sel_temp,
@@ -63,6 +62,7 @@ namespace sstation {
                     
             ToolState st;
             ToolSubState sst;
+            ToolMenuState mst;
             
             uint16_t ctemp,
                      stemp,
@@ -80,6 +80,8 @@ namespace sstation {
 
             uint8_t sw_prev_state;   // iron shake sensor previous state;
             uint64_t sw_last_time;   // last time shake sensor check
+
+            void on();
 
     }; // class Iron
     

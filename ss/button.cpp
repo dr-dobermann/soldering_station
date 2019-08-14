@@ -15,22 +15,22 @@ Button::Button(uint8_t btn_pen) :
 //-----------------------------------------------------------------
             
 void Button::tick() {
-
-    if ( btn_on_time > 0 && millis() - btn_on_time > LONG_PRESS )
-        lpressed = (millis() - btn_on_time) / LONG_PRESS;
-
+    
     uint8_t new_btn = digitalRead(pbtn);
     if ( btn_pos != new_btn &&  
          millis() - btn_change_time > DEBOUNCE_BTN) {
             
         btn_pos = new_btn;
-        if ( btn_pos == 0 )
-            bpressed++;
+        if ( btn_pos == 0 && lpressed == 0 ) 
+            bpressed++;                      
             
         btn_on_time = (btn_pos == 0 ? millis() : -1);
         
         btn_change_time = millis();
     }
+    
+    if ( btn_on_time > 0 && millis() - btn_on_time > LONG_PRESS )
+        lpressed = (millis() - btn_on_time) / LONG_PRESS;
 }
 //-----------------------------------------------------------------
 

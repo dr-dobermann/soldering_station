@@ -10,7 +10,7 @@ namespace dbtn {
         DEBOUNCE_BTN = 50;
 
     typedef struct {
-            int bressed;
+            int bpressed;
             int lpressed;
             bool pressed;
         } BtnStatus;
