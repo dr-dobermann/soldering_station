@@ -20,7 +20,7 @@ Iron::Iron(uint8_t iron_pin,
            wrk_temp(0),
            sby_temp(0),
            power(tplOff),
-           time_left(IDLE_TOUT / 1000),
+           time_left(IDLE_TOUT),
            // iron core values
            st(tsOff),
            sst(tssNormal),
@@ -30,13 +30,14 @@ Iron::Iron(uint8_t iron_pin,
            wrktemp(IRON_STD_TEMP),
            sbytemp(IRON_SBY_TEMP),
            pwr(tplOff),
-           idle_tout(IDLE_TOUT),
-           sby_tout(SBY_TOUT),
-           appr_tout(APPR_TOUT),
-           next_tout(IDLE_TOUT),
+           idle_tout(IDLE_TOUT * 1000),
+           sby_tout(SBY_TOUT * 1000),
+           appr_tout(APPR_TOUT *1000),
+           next_tout(IDLE_TOUT * 1000),
            heat_start_time(0),
            sw_prev_state(0),
-           sw_last_time(0)
+           sw_last_time(0),
+           kf(50, 0.0005)
 {
     pinMode(piron, OUTPUT);
     pinMode(ptemp, INPUT);
@@ -191,7 +192,7 @@ void Iron::tick() {
                 break;
         }
     else    
-        time_left = (next_tout - (millis() - sw_last_time)) / 1000;
+        time_left = (uint16_t)((next_tout - (millis() - sw_last_time)) / 1000);
     
         
     // check temp
@@ -201,20 +202,22 @@ void Iron::tick() {
     // make 4 temperature measurements in a row
     // and get an average from them    
     uint32_t temp = 0;
-    for ( int i = 0; i < 4; i++ )
-        temp += analogRead(ptemp);
-    temp >>= 2;
-    temp = map(temp, 0, 1024, 27, 480) + ctemp;
-    ctemp = temp >> 1;
+    //for ( int i = 0; i < 4; i++ )
+    //    temp += analogRead(ptemp);
+    //temp >>= 2;
+    //Serial.println(temp);
+//    ctemp = (uint16_t)kf.filter(temp);
+    temp = map(analogRead(ptemp), 0, 1024, 27, 480);
+    ctemp = (uint16_t)kf.filter(temp);
     curr_temp = ctemp;
     if ( ctemp < stemp ) {
         sst = tssHeat;
         uint16_t diff = stemp - ctemp;
-        if ( diff > 150 )
+        if ( diff > 50 )
             pwr = tplFull;
-        else if ( diff > 50 )
+        else if ( diff > 20 )
             pwr = tplHigh;
-        else if ( diff > 15 )
+        else if ( diff > 10 )
             pwr = tplMedium;
         else if ( diff > 1 )
             pwr = tplLow;
@@ -252,7 +255,7 @@ void Iron::off(ToolState off_state) {
                 stemp = sbytemp;
                 sel_temp = stemp;
                 next_tout = sby_tout;
-                time_left = sby_tout / 1000;
+                time_left = (uint16_t)(sby_tout / 1000);
                 Serial.println("Iron::stand-by");
             }
             break;
@@ -299,7 +302,7 @@ void Iron::on() {
     mst = tmsNone;
     mstate = mst;
     next_tout = idle_tout;
-    time_left = idle_tout / 1000;
+    time_left = (uint16_t)(idle_tout / 1000);
     sw_last_time = millis();
     
     Serial.println("Iron::on");

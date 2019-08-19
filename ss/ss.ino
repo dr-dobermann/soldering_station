@@ -70,7 +70,7 @@ typedef struct {
     ss::ToolState state;
     ss::ToolMenuState mstate;
     ss::ToolPowerLevel power;
-    long time_left;
+    uint16_t time_left;
 } IronState;
 
 typedef struct {

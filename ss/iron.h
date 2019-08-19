@@ -8,11 +8,11 @@
 
 namespace sstation {
 
-    const uint16_t IRON_STD_TEMP = 250,
+    const uint16_t IRON_STD_TEMP = 275,
                    IRON_MAX_TEMP = 480,
                    IRON_SBY_TEMP = 100;
 
-    const uint64_t MAX_HEATING_TIME = 100; // MICROseconds
+    const uint64_t MAX_HEATING_TIME = 10; // MICROseconds
         
     class Iron {
         public:
@@ -80,6 +80,8 @@ namespace sstation {
 
             uint8_t sw_prev_state;   // iron shake sensor previous state;
             uint64_t sw_last_time;   // last time shake sensor check
+
+            Kalman kf; // kalman filter for iron temperature
 
             void on();
 

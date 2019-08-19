@@ -1,12 +1,14 @@
 #ifndef _TOOL_H_
 #define _TOOL_H_
 
+#include <Arduino.h>
+
 namespace sstation {
 
-    const int64_t 
-        IDLE_TOUT = 5 * 60 * 1000,   // default timeout to switch to stand-by mode
-        SBY_TOUT = 3 * 60 * 1000,    // default timeout to switch off
-        APPR_TOUT = 5 * 1000;        // default approving timeout
+    const int16_t 
+        IDLE_TOUT = 5 * 60,   // default timeout to switch to stand-by mode
+        SBY_TOUT = 3 * 60,    // default timeout to switch off
+        APPR_TOUT = 5;        // default approving timeout
             
     typedef enum {
         tplOff,
@@ -46,6 +48,25 @@ namespace sstation {
         tmpStandBy,
         tmpCooled       // heater gun maximum temp on turning off
     } TempType;
+
+    class Kalman {
+        public:
+            Kalman( float vv, float pp);
+
+            float filter(float value);
+
+        private:
+        
+            float varVolt;    // average dispersion
+            float varProcess; // reaction speed
+            float   Pc,
+                    G,
+                    P,
+                    Xp,
+                    Zp,
+                    Xe;
+    };
+    
 }; // namespace sstation
 
 #endif // _TOOL_H_
