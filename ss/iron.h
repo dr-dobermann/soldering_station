@@ -10,9 +10,9 @@ namespace sstation {
 
     const uint16_t IRON_STD_TEMP = 250,
                    IRON_MAX_TEMP = 480,
-                   IRON_SBY_TEMP = 150;
+                   IRON_SBY_TEMP = 150; 
 
-    const uint64_t MAX_HEATING_TIME = 1; // MICROseconds
+    const uint64_t MAX_HEATING_TIME = 10; // MICROseconds
         
     class Iron {
         public:
@@ -49,7 +49,7 @@ namespace sstation {
                      wrk_temp,
                      sby_temp;
                      
-            ToolPowerLevel power;
+            uint8_t power;
                            
             uint16_t time_left;   // time left in seconds to idle, 
                                   // stand-by, off state or for approving 
@@ -69,7 +69,7 @@ namespace sstation {
                      wrktemp,
                      sbytemp;
                      
-            ToolPowerLevel pwr;
+            uint8_t pwr;
 
             uint64_t idle_tout,
                      sby_tout,

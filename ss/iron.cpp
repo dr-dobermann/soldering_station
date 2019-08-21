@@ -19,7 +19,7 @@ Iron::Iron(uint8_t iron_pin,
            sel_temp(0),
            wrk_temp(0),
            sby_temp(0),
-           power(tplOff),
+           power(0),
            time_left(IDLE_TOUT),
            // iron core values
            st(tsOff),
@@ -29,7 +29,7 @@ Iron::Iron(uint8_t iron_pin,
            stemp(0),
            wrktemp(IRON_STD_TEMP),
            sbytemp(IRON_SBY_TEMP),
-           pwr(tplOff),
+           pwr(0),
            idle_tout(IDLE_TOUT * 1000),
            sby_tout(SBY_TOUT * 1000),
            appr_tout(APPR_TOUT *1000),
@@ -38,7 +38,7 @@ Iron::Iron(uint8_t iron_pin,
            sw_prev_state(0),
            sw_last_time(0),
            //kf(50, 0.0005)
-           w(4)
+           w(8)
 {
     pinMode(piron, OUTPUT);
     pinMode(ptemp, INPUT);
@@ -205,7 +205,7 @@ void Iron::tick() {
     uint64_t temp = 0;
     for ( int i = 0; i < 4; i++ ) {
         temp += analogRead(ptemp);
-        delay(25);
+        delay(20);
     }
     temp >>= 2;
     ctemp = map((uint16_t)temp, 0, 1024, 27, 480);
@@ -217,22 +217,34 @@ void Iron::tick() {
         sst = tssHeat;
         uint16_t diff = stemp - ctemp;
         if ( diff > 75 )
-            pwr = tplFull;
-        else if ( diff > 25 )
-            pwr = tplHigh;
-        else if ( diff > 10 )
-            pwr = tplMedium;
-        else if ( diff > 1 )
-            pwr = tplLow;
+            pwr = 100;
+        else if ( diff > 15 ) {
+            if ( pwr < 15 )
+                pwr = 15; // start from 15%
+            if ( pwr < 50 )
+                pwr++;
+        }
+        else if ( diff > 1 ) 
+        {
+            if ( pwr == 0 )
+                pwr = 1;
+            else if ( pwr < 15 )
+                pwr++;
+            if ( diff * 2 < pwr )
+                pwr = diff * 2;
+        }
     }
-    else
-        pwr = tplOff;
+    else {
+        pwr = 0;
+        sst = tssNormal;
+        digitalWrite(piron, 0);
+    }
 
     power = pwr;
         
     if ( sst == tssHeat ) {
         heat_start_time = micros();
-        analogWrite(piron, pwr * 63); // multiplying on 63 instead of 64 to keep max under 255
+        analogWrite(piron, map(pwr, 0, 100, 0, 255));
     }
         
 }

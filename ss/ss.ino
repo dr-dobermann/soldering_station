@@ -69,7 +69,7 @@ typedef struct {
     uint16_t sel_temp;
     ss::ToolState state;
     ss::ToolMenuState mstate;
-    ss::ToolPowerLevel power;
+    uint8_t power;
     uint16_t time_left;
 } IronState;
 
@@ -408,23 +408,19 @@ void show_iron_info(bool updateTool) {
         tft.setFont();
         tft.setTextColor(ST77XX_BLACK);
         tft.setCursor(125, 40);
-        tft.print(istate.power * 25);
+        tft.print(istate.power);
         tft.print("%");
         tft.setTextColor(ST77XX_YELLOW);
         tft.setCursor(125, 40);
-        tft.print(iron.power * 25);
+        tft.print(iron.power);
         tft.print("%");
 
-        for ( int l = 1; l <= istate.power; l++ ) {
-            tft.drawRect(125, 30 - (l - 1)*8, 25, 3, ST77XX_BLACK);
-            tft.drawRect(125, 30 - (l - 1)*8 + 4, 25, 3, ST77XX_BLACK);
+        for ( int l = 0; l <= istate.power / 10; l++ ) {
+            tft.drawFastHLine(125, 34 - (l - 1)*3, 25, ST77XX_BLACK);
         }
 
-        for ( int l = 1; l <= iron.power; l++ ) {
-            tft.drawRect(125, 30 - (l - 1)*8, 25, 3, ST77XX_CYAN);
-            tft.drawRect(125, 30 - (l - 1)*8 + 4, 25, 3, ST77XX_CYAN);
-//            tft.drawRect(125, 30 - (l - 1)*8, 25, 3, pwr_ind_colors[l - 1]);
-//            tft.drawRect(125, 30 - (l - 1)*8 + 4, 25, 3, pwr_ind_colors[l - 1]);
+        for ( int l = 0; l <= iron.power / 10; l++ ) {
+            tft.drawFastHLine(125, 34 - (l - 1)*3, 25, ST77XX_CYAN);
         }
                     
         istate.power = iron.power;
