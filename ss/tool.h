@@ -9,6 +9,8 @@ namespace sstation {
         IDLE_TOUT = 5 * 60,   // default timeout to switch to stand-by mode
         SBY_TOUT = 3 * 60,    // default timeout to switch off
         APPR_TOUT = 5;        // default approving timeout
+
+    const int8_t MAX_WMA_SIZE = 16;
             
     typedef enum {
         tplOff,
@@ -48,25 +50,39 @@ namespace sstation {
         tmpStandBy,
         tmpCooled       // heater gun maximum temp on turning off
     } TempType;
+//
+//    class Kalman {  // Kalman filter
+//        public:
+//            Kalman( float vv, float pp);
+//
+//            float filter(float value);
+//
+//        private:
+//        
+//            float varVolt;    // average dispersion
+//            float varProcess; // reaction speed
+//            float   Pc,
+//                    G,
+//                    P,
+//                    Xp,
+//                    Zp,
+//                    Xe;
+//    };
 
-    class Kalman {
+    class WMA {  // weighted moving average
         public:
-            Kalman( float vv, float pp);
+            WMA(uint8_t m_count);
 
-            float filter(float value);
+            uint16_t filter(uint16_t value);
 
+            ~WMA();
+            
         private:
-        
-            float varVolt;    // average dispersion
-            float varProcess; // reaction speed
-            float   Pc,
-                    G,
-                    P,
-                    Xp,
-                    Zp,
-                    Xe;
-    };
-    
+            uint16_t* m;  // measurements array
+
+            int8_t pos;       // current position to insert a new value
+            uint8_t cap, len; // capacity and current length of m
+    }; // WMA
 }; // namespace sstation
 
 #endif // _TOOL_H_

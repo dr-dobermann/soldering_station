@@ -37,7 +37,8 @@ Iron::Iron(uint8_t iron_pin,
            heat_start_time(0),
            sw_prev_state(0),
            sw_last_time(0),
-           kf(50, 0.0005)
+           //kf(50, 0.0005)
+           w(4)
 {
     pinMode(piron, OUTPUT);
     pinMode(ptemp, INPUT);
@@ -139,7 +140,7 @@ void Iron::tick(int enc_value, dbtn::BtnStatus enc_btn) {
                     break;
     
                 case tsRun:
-                    this->set_temp(tmpWork, wrktemp + enc_value);
+                    this->set_temp(tmpWork, stemp + enc_value);
                     stemp = wrktemp;
                     sel_temp = stemp;
                     break;
@@ -201,21 +202,23 @@ void Iron::tick() {
 
     // make 4 temperature measurements in a row
     // and get an average from them    
-    uint32_t temp = 0;
-    //for ( int i = 0; i < 4; i++ )
-    //    temp += analogRead(ptemp);
-    //temp >>= 2;
-    //Serial.println(temp);
-//    ctemp = (uint16_t)kf.filter(temp);
-    temp = map(analogRead(ptemp), 0, 1024, 27, 480);
-    ctemp = (uint16_t)kf.filter(temp);
+    uint64_t temp = 0;
+    for ( int i = 0; i < 4; i++ ) {
+        temp += analogRead(ptemp);
+        delay(25);
+    }
+    temp >>= 2;
+    ctemp = map((uint16_t)temp, 0, 1024, 27, 480);
+    //Serial.println(ctemp);
+    //ctemp = (uint16_t)kf.filter(temp);
+    ctemp = w.filter(ctemp);
     curr_temp = ctemp;
     if ( ctemp < stemp ) {
         sst = tssHeat;
         uint16_t diff = stemp - ctemp;
-        if ( diff > 50 )
+        if ( diff > 75 )
             pwr = tplFull;
-        else if ( diff > 20 )
+        else if ( diff > 25 )
             pwr = tplHigh;
         else if ( diff > 10 )
             pwr = tplMedium;
