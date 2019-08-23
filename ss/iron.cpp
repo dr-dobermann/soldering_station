@@ -222,14 +222,14 @@ void Iron::tick() {
             pwr = 100;
         else if ( diff > 15 ) {
             if ( pwr < 15 )
-                pwr = 15; // start from 15%
+                pwr = diff; 
             if ( pwr < 75 )
                 pwr++;
         }
         else if ( diff > 1 ) 
         {
             if ( pwr == 0 )
-                pwr = 1;
+                pwr = diff;
             else if ( pwr < 15 )
                 pwr++;
             if ( diff * 2 < pwr )
