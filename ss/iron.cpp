@@ -202,8 +202,10 @@ void Iron::tick() {
     if ( sst == tssHeat ) // DO NOT check temp until it's heating!
         return;
 
+
     // make 4 temperature measurements in a row
-    // and get an average from them    
+    // and get an average from them
+    delay(10); // wait a little before the first measurement
     uint64_t temp = 0;
     for ( int i = 0; i < 4; i++ ) {
         delay(10);
@@ -222,14 +224,14 @@ void Iron::tick() {
             pwr = 100;
         else if ( diff > 15 ) {
             if ( pwr < 15 )
-                pwr = diff; 
+                pwr = diff * 2; 
             if ( pwr < 75 )
                 pwr++;
         }
         else if ( diff > 1 ) 
         {
             if ( pwr == 0 )
-                pwr = diff;
+                pwr = diff * 2;
             else if ( pwr < 15 )
                 pwr++;
             if ( diff * 2 < pwr )
