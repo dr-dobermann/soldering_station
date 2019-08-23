@@ -12,7 +12,7 @@ namespace sstation {
                    IRON_MAX_TEMP = 480,
                    IRON_SBY_TEMP = 150; 
 
-    const uint64_t MAX_HEATING_TIME = 10; // MICROseconds
+    const uint64_t MAX_HEATING_TIME = 100; // MICROseconds
         
     class Iron {
         public:
@@ -71,15 +71,15 @@ namespace sstation {
                      
             uint8_t pwr;
 
-            uint64_t idle_tout,
+            uint32_t idle_tout,
                      sby_tout,
-                     appr_tout,
-                     next_tout;   // timelimit to next state or substate
+                     appr_tout;
+            uint64_t next_tout;   // timelimit to next state or substate
 
             uint64_t heat_start_time; // heating starting time in MICROseconds
 
             uint8_t sw_prev_state;   // iron shake sensor previous state;
-            uint64_t sw_last_time;   // last time shake sensor check
+            uint64_t sw_last_time;   // the time shake sensor was updated
 
             //Kalman kf; // kalman filter for iron temperature
             WMA w;

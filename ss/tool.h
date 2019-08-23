@@ -5,10 +5,10 @@
 
 namespace sstation {
 
-    const int16_t 
-        IDLE_TOUT = 5 * 60,   // default timeout to switch to stand-by mode
+    const uint32_t 
+        IDLE_TOUT = 10 * 60,   // default timeout to switch to stand-by mode
         SBY_TOUT = 3 * 60,    // default timeout to switch off
-        APPR_TOUT = 5;        // default approving timeout
+        APPR_TOUT = 5;     // default approving timeout
 
     const int8_t MAX_WMA_SIZE = 16;
             

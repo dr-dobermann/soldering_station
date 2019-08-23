@@ -30,13 +30,13 @@ Iron::Iron(uint8_t iron_pin,
            wrktemp(IRON_STD_TEMP),
            sbytemp(IRON_SBY_TEMP),
            pwr(0),
-           idle_tout(IDLE_TOUT * 1000),
-           sby_tout(SBY_TOUT * 1000),
-           appr_tout(APPR_TOUT *1000),
+           idle_tout(IDLE_TOUT),
+           sby_tout(SBY_TOUT),
+           appr_tout(APPR_TOUT),
            next_tout(IDLE_TOUT * 1000),
            heat_start_time(0),
            sw_prev_state(0),
-           sw_last_time(0),
+           sw_last_time(millis()),
            //kf(50, 0.0005)
            w(8)
 {
@@ -64,7 +64,7 @@ void Iron::tick(int enc_value, dbtn::BtnStatus enc_btn) {
         if ( st != tsOff && mst == tmsNone ) {
             mst = tmsWaitForStandBy;
             mstate = mst;
-            next_tout = appr_tout;
+            next_tout = appr_tout * 1000;
         }
     
     // check encoder button press
@@ -131,7 +131,7 @@ void Iron::tick(int enc_value, dbtn::BtnStatus enc_btn) {
                         mst = tmsWaitForOff;
                     break;
             }
-            next_tout = appr_tout;
+            next_tout = appr_tout * 1000;
             mstate = mst;
         }
         else {
@@ -161,8 +161,11 @@ void Iron::tick(int enc_value, dbtn::BtnStatus enc_btn) {
 
 void Iron::tick() {
     
-    if ( st == tsOff )
+    if ( st == tsOff ) {
+        digitalWrite(piron, 0);
+        sst = tssNormal;
         return;
+    }
 
     // stop heating if time is up (MICRO!!!)
     if ( sst == tssHeat && micros() - heat_start_time > MAX_HEATING_TIME ) {
@@ -171,7 +174,7 @@ void Iron::tick() {
     }
 
     // check shake sensor
-    if ( st != tsOff && millis() - sw_last_time > dbtn::DEBOUNCE_BTN ) {
+    if ( millis() - sw_last_time > dbtn::DEBOUNCE_BTN ) {
         int nssens = digitalRead(pssens);
         if ( nssens != sw_prev_state) {
             sw_prev_state = nssens;
@@ -182,7 +185,7 @@ void Iron::tick() {
     if ( millis() - sw_last_time > next_tout )
         switch ( st ) {
             case tsRun:
-                if ( mst != tmsNone )
+                if ( mst == tmsNone )
                     this->off(tsStandBy);
                 else 
                     this->on();
@@ -192,9 +195,8 @@ void Iron::tick() {
                 this->off(tsOff);
                 break;
         }
-    else    
+    else 
         time_left = (uint16_t)((next_tout - (millis() - sw_last_time)) / 1000);
-    
         
     // check temp
     if ( sst == tssHeat ) // DO NOT check temp until it's heating!
@@ -204,8 +206,8 @@ void Iron::tick() {
     // and get an average from them    
     uint64_t temp = 0;
     for ( int i = 0; i < 4; i++ ) {
+        delay(10);
         temp += analogRead(ptemp);
-        delay(20);
     }
     temp >>= 2;
     ctemp = map((uint16_t)temp, 0, 1024, 27, 480);
@@ -221,7 +223,7 @@ void Iron::tick() {
         else if ( diff > 15 ) {
             if ( pwr < 15 )
                 pwr = 15; // start from 15%
-            if ( pwr < 50 )
+            if ( pwr < 75 )
                 pwr++;
         }
         else if ( diff > 1 ) 
@@ -269,8 +271,9 @@ void Iron::off(ToolState off_state) {
                 state = st;
                 stemp = sbytemp;
                 sel_temp = stemp;
-                next_tout = sby_tout;
-                time_left = (uint16_t)(sby_tout / 1000);
+                next_tout = sby_tout * 1000;
+                time_left = sby_tout;
+                sw_last_time = millis();
                 Serial.println("Iron::stand-by");
             }
             break;
@@ -316,8 +319,8 @@ void Iron::on() {
     }
     mst = tmsNone;
     mstate = mst;
-    next_tout = idle_tout;
-    time_left = (uint16_t)(idle_tout / 1000);
+    next_tout = idle_tout * 1000;
+    time_left = idle_tout;
     sw_last_time = millis();
     
     Serial.println("Iron::on");
