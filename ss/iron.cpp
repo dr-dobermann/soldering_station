@@ -38,7 +38,7 @@ Iron::Iron(uint8_t iron_pin,
            sw_prev_state(0),
            sw_last_time(millis()),
            //kf(50, 0.0005)
-           w(8)
+           w(4)
 {
     pinMode(piron, OUTPUT);
     pinMode(ptemp, INPUT);
@@ -51,14 +51,6 @@ Iron::Iron(uint8_t iron_pin,
 
 void Iron::tick(int enc_value, dbtn::BtnStatus enc_btn) {
 
-    if ( enc_value != 0 || enc_btn.bpressed != 0 || enc_btn.lpressed  != 0 ) {
-        Serial.print("Iron::tick(");
-        Serial.print(enc_value); Serial.print(',');
-        Serial.print(enc_btn.bpressed); Serial.print(',');
-        Serial.print(enc_btn.lpressed);
-        Serial.println(')');
-    }
-    
     // check encoder long button press
     if ( enc_btn.lpressed > 0 )
         if ( st != tsOff && mst == tmsNone ) {
@@ -91,8 +83,6 @@ void Iron::tick(int enc_value, dbtn::BtnStatus enc_btn) {
     }
     else 
         if ( enc_btn.bpressed > 0 ) {
-            Serial.print("Iron::check state:"); 
-            Serial.println(st);   
             switch ( st ) {
                 case tsOff:
                 case tsStandBy:
@@ -227,6 +217,8 @@ void Iron::tick() {
                 pwr = diff * 2; 
             if ( pwr < 75 )
                 pwr++;
+            if ( diff * 2 < pwr )
+                pwr = diff * 2;
         }
         else if ( diff > 1 ) 
         {
@@ -266,7 +258,6 @@ void Iron::off(ToolState off_state) {
                 st = tsOff;
                 state = st;
                 sst = tssNormal;
-                Serial.println("Iron::off");
             }
             else if ( off_state == tsStandBy ) {
                 st = tsStandBy;
@@ -276,7 +267,6 @@ void Iron::off(ToolState off_state) {
                 next_tout = sby_tout * 1000;
                 time_left = sby_tout;
                 sw_last_time = millis();
-                Serial.println("Iron::stand-by");
             }
             break;
             
@@ -324,7 +314,5 @@ void Iron::on() {
     next_tout = idle_tout * 1000;
     time_left = idle_tout;
     sw_last_time = millis();
-    
-    Serial.println("Iron::on");
 }
 //-----------------------------------------------------------------

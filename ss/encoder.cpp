@@ -15,12 +15,11 @@ Encoder::Encoder(byte encA, byte encB) :
             
 void Encoder::tick() {
     
-    if ( millis() - enc_change_time > DEBOUNCE_ENC ) {
-        uint8_t new_epos = (digitalRead(pa) << 1) | digitalRead(pb);
+    uint8_t new_epos = (digitalRead(pa) << 1) | digitalRead(pb);
+    if ( new_epos != epos && micros() - enc_change_time > DEBOUNCE_ENC ) {
         value += ECDR_SHIFTS[new_epos * 4 + epos];
         epos = new_epos;
-
-        enc_change_time = millis();
+        enc_change_time = micros();
     }
 }
 //-----------------------------------------------------------------

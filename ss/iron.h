@@ -64,16 +64,16 @@ namespace sstation {
             ToolSubState sst;
             ToolMenuState mst;
             
-            uint16_t ctemp,
-                     stemp,
-                     wrktemp,
-                     sbytemp;
+            uint16_t ctemp,     // current temperature
+                     stemp,     // selected temperature
+                     wrktemp,   // working temperature
+                     sbytemp;   // stand-by temperature
                      
             uint8_t pwr;
 
-            uint32_t idle_tout,
-                     sby_tout,
-                     appr_tout;
+            uint32_t idle_tout,   // timeouts for idle,
+                     sby_tout,    //              stand-by
+                     appr_tout;   //          and approval
             uint64_t next_tout;   // timelimit to next state or substate
 
             uint64_t heat_start_time; // heating starting time in MICROseconds

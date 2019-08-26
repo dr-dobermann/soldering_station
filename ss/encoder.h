@@ -5,12 +5,12 @@
 
 namespace encdr {
     
-    const long
+    const uint64_t
         MAX_CHECK_TIME = 20, 
-        DEBOUNCE_ENC = 5;
+        DEBOUNCE_ENC = 100; // in MICROseconds
 
-    const int8_t ECDR_SHIFTS[] = { 0,  1, -1,  0,
-                                  -1,  0,  0,  1,
+    const int8_t ECDR_SHIFTS[] = { 0,  1, -1,  0,  // previous state is on X 
+                                  -1,  0,  0,  1,  // the new state is on Y
                                    1,  0,  0, -1,
                                    0, -1,  1,  0};
                                    
@@ -33,7 +33,7 @@ namespace encdr {
     
             uint8_t epos;
                             
-            long enc_change_time;  
+            uint64_t enc_change_time;  
             
     };
     

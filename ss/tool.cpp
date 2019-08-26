@@ -55,8 +55,8 @@ uint16_t WMA::filter(uint16_t value) {
     for ( int n = len, p = pos - 1; n > 0; n-- ) {
         if ( p < 0 )
             p = cap - 1;
-        w += m[p--] * n;
-        f += n;
+        w += m[p--] * ( n >> 1);
+        f += (n >> 1);
     }
     
     return (uint16_t)(w/f);
